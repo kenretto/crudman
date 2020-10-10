@@ -15,7 +15,7 @@ import (
 
 var validate func(obj interface{}) interface{}
 
-// SetValidator set up validator and make basic configuration for github.com/go-playground/validator
+// SetValidator set up default validator and make basic configuration for github.com/go-playground/validator
 func SetValidator(valid func(obj interface{}) interface{}) {
 	validate = valid
 }
@@ -27,6 +27,7 @@ type GormManager struct {
 	Table      crudman.Tabler
 	PrimaryKey string
 	db         *gorm.DB
+	validator  func(obj interface{}) interface{}
 }
 
 // NewGorm gorm driver
@@ -35,6 +36,12 @@ func NewGorm(db *gorm.DB, primaryKey string) *GormManager {
 		PrimaryKey: primaryKey,
 		db:         db,
 	}
+}
+
+// WithValidator custom validator for a manager
+func (manager *GormManager) WithValidator(validator func(obj interface{}) interface{}) *GormManager {
+	manager.validator = validator
+	return manager
 }
 
 // GetRoute get route
@@ -83,6 +90,10 @@ func (manager *GormManager) Post(r *http.Request) (interface{}, error) {
 		return nil, errors.New("only application/json is supported for the time being")
 	}
 
+	var validate = validate
+	if manager.validator != nil {
+		validate = manager.validator
+	}
 	if rs := validate(newInstance.Interface()); rs != nil {
 		return rs, errors.New("params valid error")
 	}
@@ -118,6 +129,10 @@ func (manager *GormManager) Put(r *http.Request) (interface{}, error) {
 		return nil, errors.New("put must set primary key")
 	}
 
+	var validate = validate
+	if manager.validator != nil {
+		validate = manager.validator
+	}
 	if rs := validate(newInstance.Interface()); rs != nil {
 		return rs, errors.New("params valid error")
 	}
