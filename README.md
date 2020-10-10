@@ -4,6 +4,8 @@ crudman completes common operations of adding, deleting, modifying and querying,
 # Example
 Because only gorm is implemented now, take gorm as an example
 
+- For a complete example, you can view the example directory
+
 - Build a data structure
 ```go
     type user struct {
